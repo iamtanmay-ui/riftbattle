@@ -1,0 +1,1173 @@
+swagger: '2.0'
+info:
+  title: RiftBattle API
+  description: API for managing users, products, orders, Fortnite stats, and more.
+  version: 1.0.0
+basePath: /api
+tags:
+  - name: user
+    description: Operations related to users
+  - name: product
+    description: Operations related to products
+  - name: order
+    description: Operations related to orders
+  - name: fortnite
+    description: Operations related to Fortnite stats
+  - name: message
+    description: Operations related to messages
+  - name: settings
+    description: Operations related to settings
+paths:
+  /get_link:
+    get:
+      tags:
+        - fortnite
+      summary: Get Fortnite authentication link
+      responses:
+        '200':
+          description: Successful response with device code
+          schema:
+            type: object
+            properties:
+              user_code:
+                type: string
+                example: "ABCD-EFGH"
+              device_code:
+                type: string
+                example: "1234567890"
+              verification_uri:
+                type: string
+                example: "https://example.com/verify"
+              expires_in:
+                type: integer
+                example: 600
+        '400':
+          description: Bad request (e.g., missing or invalid parameters)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "device_code is required"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /get_skins:
+    get:
+      tags:
+        - fortnite
+      summary: Get Fortnite skins for a user
+      parameters:
+        - name: device_code
+          in: query
+          type: string
+          required: true
+          description: Device code for Fortnite authentication
+      responses:
+        '200':
+          description: Successful response with skins data
+          schema:
+            type: object
+            properties:
+              athena_ids:
+                type: array
+                items:
+                  type: string
+                example: ["CID_123", "CID_456"]
+              skins_count:
+                type: integer
+                example: 10
+              emotes_count:
+                type: integer
+                example: 5
+              backpacks_count:
+                type: integer
+                example: 3
+              pickaxes_count:
+                type: integer
+                example: 2
+              glider_count:
+                type: integer
+                example: 1
+              account_level:
+                type: integer
+                example: 100
+              suggested_name:
+                type: string
+                example: "10 skins | Skin1 | Skin2"
+        '400':
+          description: Bad request (e.g., missing or invalid parameters)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "device_code is required"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /send_otp:
+    post:
+      tags:
+        - user
+      summary: Send OTP to a user's email
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                example: "user@example.com"
+      responses:
+        '200':
+          description: OTP sent successfully
+        '400':
+          description: Bad request (e.g., invalid email)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid email"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /get_role:
+    get:
+      tags:
+        - user
+      summary: Get the role of the current user
+      responses:
+        '200':
+          description: Successful response with user role
+          schema:
+            type: string
+            example: "user"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /login:
+    post:
+      tags:
+        - user
+      summary: Create a session for the user
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                example: "user@example.com"
+              code:
+                type: integer
+                example: 123456
+      responses:
+        '200':
+          description: Session created successfully
+        '400':
+          description: Bad request (e.g., invalid OTP)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid OTP"
+        '401':
+          description: Unauthorized (e.g., invalid credentials)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "unauthorized"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /get_products:
+    get:
+      tags:
+        - product
+      summary: Get all products
+      responses:
+        '200':
+          description: Successful response with products list
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Product'
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /get_seller_info:
+    get:
+      tags:
+        - user
+      summary: Get seller information
+      parameters:
+        - name: id
+          in: query
+          type: integer
+          required: true
+          description: Seller ID
+      responses:
+        '200':
+          description: Successful response with seller info
+          schema:
+            $ref: '#/definitions/User'
+        '400':
+          description: Bad request (e.g., missing or invalid ID)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "id is required"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /create_order:
+    post:
+      tags:
+        - order
+      summary: Create a new order
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                example: "user@example.com"
+              product_id:
+                type: integer
+                example: 1
+              payment_method:
+                type: string
+                example: "balance"
+              coupon:
+                type: string
+                example: "DISCOUNT10"
+              warranty:
+                type: number
+                format: float
+                example: 3
+      responses:
+        '200':
+          description: Order created successfully
+          schema:
+            $ref: '#/definitions/Order'
+        '400':
+          description: Bad request (e.g., invalid product or payment method)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid payment method"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /check_coupon:
+    get:
+      tags:
+        - product
+      summary: Check if a coupon is valid
+      parameters:
+        - name: coupon
+          in: query
+          type: string
+          required: true
+          description: Coupon code
+      responses:
+        '200':
+          description: Successful response with coupon discount
+          schema:
+            type: object
+            properties:
+              discount:
+                type: integer
+                example: 10
+        '400':
+          description: Bad request (e.g., invalid coupon)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid coupon"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /get_skins_info:
+    get:
+      tags:
+        - fortnite
+      summary: Get information about Fortnite skins
+      parameters:
+        - name: athenaID
+          in: query
+          type: string
+          required: true
+          description: Athena ID of the skin
+      responses:
+        '200':
+          description: Successful response with skin info
+          schema:
+            $ref: '#/definitions/AthenaID'
+        '400':
+          description: Bad request (e.g., missing or invalid Athena ID)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "athenaID is required"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /get_product:
+    get:
+      tags:
+        - product
+      summary: Get a specific product by ID
+      parameters:
+        - name: id
+          in: query
+          type: integer
+          required: true
+          description: Product ID
+      responses:
+        '200':
+          description: Successful response with product details
+          schema:
+            $ref: '#/definitions/Product'
+        '400':
+          description: Bad request (e.g., invalid product ID)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid product ID"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /seller/create_product:
+    post:
+      tags:
+        - product
+      summary: Create a new product (Seller only)
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "Fortnite Account"
+              price:
+                type: number
+                format: float
+                example: 50.0
+              athena_ids:
+                type: array
+                items:
+                  type: string
+                example: ["CID_123", "CID_456"]
+              stats:
+                type: object
+                example: {"level": "100", "backpacks": "500"}
+              active:
+                type: boolean
+                example: true
+              description:
+                type: string
+                example: "A rare Fortnite account"
+              discount:
+                type: integer
+                example: 10
+              credentials:
+                type: string
+                example: "username:password"
+      responses:
+        '200':
+          description: Product created successfully
+        '400':
+          description: Bad request (e.g., invalid parameters)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid parameters"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /seller/add_athena_ids:
+    post:
+      tags:
+        - fortnite
+      summary: Add Athena IDs (Seller only)
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              athena_ids:
+                type: array
+                items:
+                  type: string
+                example: ["CID_123", "CID_456"]
+      responses:
+        '200':
+          description: Athena IDs added successfully
+        '400':
+          description: Bad request (e.g., invalid Athena IDs)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid Athena IDs"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /seller/get_athena_ids:
+    get:
+      tags:
+        - fortnite
+      summary: Get Athena IDs (Seller only)
+      responses:
+        '200':
+          description: Successful response with Athena IDs
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/AthenaID'
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /seller/edit_product:
+    put:
+      tags:
+        - product
+      summary: Edit a product (Seller only)
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              name:
+                type: string
+                example: "Updated Fortnite Account"
+              price:
+                type: number
+                format: float
+                example: 60.0
+              active:
+                type: boolean
+                example: true
+              description:
+                type: string
+                example: "Updated description"
+              discount:
+                type: integer
+                example: 15
+      responses:
+        '200':
+          description: Product edited successfully
+        '400':
+          description: Bad request (e.g., invalid product ID)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid product ID"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /seller/create_coupon:
+    post:
+      tags:
+        - product
+      summary: Create a coupon (Seller only)
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "SUMMER2023"
+              discount:
+                type: integer
+                example: 20
+              usages:
+                type: integer
+                example: 100
+              expired_at:
+                type: integer
+                format: int64
+                example: 1693526400
+      responses:
+        '200':
+          description: Coupon created successfully
+        '400':
+          description: Bad request (e.g., invalid parameters)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid parameters"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /seller/deactivate_coupon:
+    put:
+      tags:
+        - product
+      summary: Deactivate a coupon (Seller only)
+      parameters:
+        - name: coupon
+          in: query
+          type: string
+          required: true
+          description: Coupon name
+      responses:
+        '200':
+          description: Coupon deactivated successfully
+        '400':
+          description: Bad request (e.g., invalid coupon name)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid coupon name"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /seller/edit_seller_info:
+    put:
+      tags:
+        - user
+      summary: Edit seller information (Seller only)
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              seller_name:
+                type: string
+                example: "New Seller Name"
+              seller_avatar:
+                type: string
+                example: "https://example.com/avatar.jpg"
+      responses:
+        '200':
+          description: Seller info updated successfully
+        '400':
+          description: Bad request (e.g., invalid parameters)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid parameters"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /seller/get_profits:
+    get:
+      tags:
+        - order
+      summary: Get seller profits (Seller only)
+      parameters:
+        - name: days
+          in: query
+          type: integer
+          required: true
+          description: Number of days to calculate profits
+      responses:
+        '200':
+          description: Successful response with profits data
+          schema:
+            $ref: '#/definitions/Profit'
+        '400':
+          description: Bad request (e.g., invalid days parameter)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid days parameter"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /user/get_user:
+    get:
+      tags:
+        - user
+      summary: Get current user information
+      responses:
+        '200':
+          description: Successful response with user data
+          schema:
+            $ref: '#/definitions/User'
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /user/send_message:
+    post:
+      tags:
+        - message
+      summary: Send a message
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Hello, I have a question!"
+              receiver_id:
+                type: integer
+                example: 2
+      responses:
+        '200':
+          description: Message sent successfully
+        '400':
+          description: Bad request (e.g., invalid message or receiver ID)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid message"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /user/get_messages:
+    get:
+      tags:
+        - message
+      summary: Get messages
+      parameters:
+        - name: filter
+          in: query
+          type: string
+          description: Filter messages
+        - name: seller_id
+          in: query
+          type: integer
+          description: Seller ID
+        - name: dateFrom
+          in: query
+          type: integer
+          description: Start date timestamp
+        - name: dateTo
+          in: query
+          type: integer
+          description: End date timestamp
+      responses:
+        '200':
+          description: Successful response with messages
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Message'
+        '400':
+          description: Bad request (e.g., invalid parameters)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid parameters"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /admin/users/create:
+    post:
+      tags:
+        - user
+      summary: Create a new user (Admin only)
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+                example: "newuser@example.com"
+              role:
+                type: string
+                example: "user"
+      responses:
+        '200':
+          description: User created successfully
+        '400':
+          description: Bad request (e.g., invalid email or role)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid email"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /admin/users/edit:
+    put:
+      tags:
+        - user
+      summary: Edit a user (Admin only)
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 1
+              email:
+                type: string
+                example: "updated@example.com"
+              role:
+                type: string
+                example: "admin"
+              balance:
+                type: number
+                format: float
+                example: 100.0
+              banned:
+                type: boolean
+                example: false
+      responses:
+        '200':
+          description: User updated successfully
+        '400':
+          description: Bad request (e.g., invalid parameters)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid parameters"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+  /admin/settings/edit:
+    put:
+      tags:
+        - settings
+      summary: Edit settings (Admin only)
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "warranty3Months"
+              value:
+                type: number
+                format: float
+                example: 10.0
+      responses:
+        '200':
+          description: Settings updated successfully
+        '400':
+          description: Bad request (e.g., invalid parameters)
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid parameters"
+        '500':
+          description: Internal server error
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "internal server error"
+definitions:
+  AthenaID:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      athena_id:
+        type: string
+        example: "CID_123"
+      name:
+        type: string
+        example: "Skin Name"
+      type:
+        type: string
+        example: "outfit"
+      rarity:
+        type: string
+        example: "legendary"
+      description:
+        type: string
+        example: "A rare skin"
+  Coupon:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      name:
+        type: string
+        example: "SUMMER2023"
+      discount:
+        type: integer
+        example: 20
+      usages:
+        type: integer
+        example: 100
+      creator_id:
+        type: integer
+        example: 1
+      expired_at:
+        type: integer
+        format: int64
+        example: 1693526400
+      created_at:
+        type: integer
+        format: int64
+        example: 1690924800
+  Message:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      text:
+        type: string
+        example: "Hello, I have a question!"
+      sender_id:
+        type: integer
+        example: 1
+      receiver_id:
+        type: integer
+        example: 2
+      date:
+        type: integer
+        format: int64
+        example: 1690924800
+  Order:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      email:
+        type: string
+        example: "user@example.com"
+      total_price:
+        type: number
+        format: float
+        example: 50.0
+      user_id:
+        type: integer
+        example: 1
+      product_id:
+        type: integer
+        example: 1
+      seller_id:
+        type: integer
+        example: 2
+      payment_method:
+        type: string
+        example: "balance"
+      coupon:
+        type: string
+        example: "DISCOUNT10"
+      status:
+        type: string
+        example: "pending"
+      warranty:
+        type: integer
+        example: 3
+      date:
+        type: integer
+        format: int64
+        example: 1690924800
+  OTP:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      code:
+        type: integer
+        example: 123456
+      email:
+        type: string
+        example: "user@example.com"
+      date:
+        type: integer
+        format: int64
+        example: 1690924800
+      used:
+        type: boolean
+        example: false
+  Product:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      name:
+        type: string
+        example: "Fortnite Account"
+      price:
+        type: number
+        format: float
+        example: 50.0
+      credentials:
+        type: string
+        example: "username:password"
+      seller_id:
+        type: integer
+        example: 2
+      athena_ids:
+        type: array
+        items:
+          type: string
+        example: ["CID_123", "CID_456"]
+      stats:
+        type: object
+        example: {"level": "100", "backpacks": "500"}
+      description:
+        type: string
+        example: "A rare Fortnite account"
+      date:
+        type: integer
+        format: int64
+        example: 1690924800
+      active:
+        type: boolean
+        example: true
+      discount:
+        type: integer
+        example: 10
+  Profit:
+    type: object
+    properties:
+      total_profit:
+        type: number
+        format: float
+        example: 500.0
+      sells_count:
+        type: integer
+        example: 10
+      date:
+        type: integer
+        format: int64
+        example: 1690924800
+  Settings:
+    type: object
+    properties:
+      warranty3Months:
+        type: number
+        format: float
+        example: 10.0
+      warranty6Months:
+        type: number
+        format: float
+        example: 20.0
+  User:
+    type: object
+    properties:
+      id:
+        type: integer
+        example: 1
+      email:
+        type: string
+        example: "user@example.com"
+      reg_date:
+        type: integer
+        format: int64
+        example: 1690924800
+      role:
+        type: string
+        example: "user"
+      balance:
+        type: number
+        format: float
+        example: 100.0
+      banned:
+        type: boolean
+        example: false
+      ip_reg:
+        type: string
+        example: "192.168.1.1"
+      ip_auth:
+        type: string
+        example: "192.168.1.1"
+      user_agent:
+        type: string
+        example: "Mozilla/5.0"
+      seller_name:
+        type: string
+        example: "Seller Name"
+      seller_avatar:
+        type: string
+        example: "https://example.com/avatar.jpg"

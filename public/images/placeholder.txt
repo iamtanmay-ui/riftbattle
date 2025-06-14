@@ -1,0 +1,3 @@
+This directory contains placeholder images for the product details page.
+
+In a production environment, these would be replaced with actual product images from your API or content management system.
